@@ -6,11 +6,26 @@ from whitex.whitex import clean_buffer
 
 
 @click.command()
-@click.argument("input_file", type=click.File('r'))
-@click.argument("output_file", type=click.File('w'))
-def main(input_file, output_file):
+@click.argument(
+    "input_fname",
+    type=click.Path(exists=True, dir_okay=False, readable=True),
+)
+@click.argument(
+    "output_fname",
+    type=click.Path(dir_okay=False),
+)
+def main(input_fname, output_fname):
     """Console script for whitex."""
-    clean_buffer(input_file, output_file)
+    if not input_fname.endswith('.tex'):
+        msg = (
+            'Expected input file with tex extension, '
+            f'but encountered {input_fname}'
+        )
+        raise click.Abort(msg)
+
+    with open(input_fname, 'r') as input_buf:
+        with open(output_fname, 'w') as output_buf:
+            clean_buffer(input_buf, output_buf)
 
 
 if __name__ == "__main__":

@@ -307,6 +307,39 @@ class TestReplaceDoubleDollarInline(TestAbstract):
         )
         self.run_and_compare(input_string, expected_string)
 
+    def test_replace_double_dollars_on_newlines(self):
+        input_string = dedent(
+            """\
+            this
+            $$
+            a + b = c
+            $$
+            and that
+            """
+        )
+        expected_string = dedent(
+            """\
+            this
+            \\[
+            a + b = c
+            \\]
+            and that
+            """
+        )
+        self.run_and_compare(input_string, expected_string)
+
+    def test_unmatching_dollar_signs_raises(self):
+        input_string = dedent(
+            """\
+            example with unmatching double dollar signs
+            equation $$a + b = c
+            never ends
+            """
+        )
+        with pytest.raises(ValueError, match='Unmatching number'):
+            receiver = TexString(input_string)
+            self.command(receiver).execute()
+
 
 class TestReplaceObsoleteTextMods(TestAbstract):
     command = ReplaceObsoleteTextMods
