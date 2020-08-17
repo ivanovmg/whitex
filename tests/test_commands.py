@@ -293,6 +293,42 @@ class TestRemoveWhitespaceAroundBrackets(TestAbstract):
         expected_string = input_string
         self.run_and_compare(input_string, expected_string)
 
+    def test_includegraphics_with_options(self):
+        input_string = dedent(
+            """\
+            \\includegraphics[ width=0.5\\textwidth] {
+                long_path_to_image_file_on_new_line
+            }
+            """
+        )
+        expected_string = dedent(
+            """\
+            \\includegraphics[width=0.5\\textwidth] {
+                long_path_to_image_file_on_new_line
+            }
+            """
+        )
+        self.run_and_compare(input_string, expected_string)
+
+    def test_caption(self):
+        input_string = dedent(
+            """\
+            \\caption[ short caption  ] {
+                very long caption\n
+                even multiline.
+            }
+            """
+        )
+        expected_string = dedent(
+            """\
+            \\caption[short caption] {
+                very long caption\n
+                even multiline.
+            }
+            """
+        )
+        self.run_and_compare(input_string, expected_string)
+
 
 class TestReplaceDoubleDollarInline(TestAbstract):
     command = ReplaceDoubleDollarInline

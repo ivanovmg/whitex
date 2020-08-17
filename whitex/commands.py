@@ -87,12 +87,22 @@ class RemoveMultipleNewlines(Command):
 class RemoveWhitespaceAroundBrackets(Command):
     def execute(self):
         mapping = {
-            r"{[^\S\r\n]*(.*)[^\S\r\n]+}": r"{\1}",
-            r"{[^\S\r\n]+(.*)[^\S\r\n]*}": r"{\1}",
-            r"\([^\S\r\n]*(.*)[^\S\r\n]+\)": r"(\1)",
-            r"\([^\S\r\n]+(.*)[^\S\r\n]*\)": r"(\1)",
-            r"(\\left\()[^\S\r\n]*(.*)[^\S\r\n]+(\\right\))": r"\1\2\3",
-            r"(\\left\()[^\S\r\n]+(.*)[^\S\r\n]*(\\right\))": r"\1\2\3",
+            # curly
+            r"{[^\S\r\n]*(.*?)[^\S\r\n]+}": r"{\1}",
+            r"{[^\S\r\n]+(.*?)[^\S\r\n]*}": r"{\1}",
+            r"{[^\S\r\n]+(.*?)[^\S\r\n]+}": r"{\1}",
+            # square
+            r"\[[^\S\r\n]*(.*?)[^\S\r\n]+\]": r"[\1]",
+            r"\[[^\S\r\n]+(.*?)[^\S\r\n]*\]": r"[\1]",
+            r"\[[^\S\r\n]+(.*?)[^\S\r\n]+\]": r"[\1]",
+            # round
+            r"\([^\S\r\n]*(.*?)[^\S\r\n]+\)": r"(\1)",
+            r"\([^\S\r\n]+(.*?)[^\S\r\n]*\)": r"(\1)",
+            r"\([^\S\r\n]+(.*?)[^\S\r\n]+\)": r"(\1)",
+            # \left( \right)
+            r"(\\left\()[^\S\r\n]*(.*?)[^\S\r\n]+(\\right\))": r"\1\2\3",
+            r"(\\left\()[^\S\r\n]+(.*?)[^\S\r\n]*(\\right\))": r"\1\2\3",
+            r"(\\left\()[^\S\r\n]+(.*?)[^\S\r\n]+(\\right\))": r"\1\2\3",
         }
         self.do_replace(mapping)
 
