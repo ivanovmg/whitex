@@ -10,4 +10,13 @@ History
 0.0.2 (2020-08-17)
 ------------------
 
-* Restrict to tex extension only.
+* Restricted to tex extension only.
+
+
+0.0.3 (2020-08-18)
+------------------
+
+* Added flag --keep-comments.
+* Improved comments handling.
+* Modified behavior for removal whitespace around brackets.
+
