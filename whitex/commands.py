@@ -23,7 +23,9 @@ class Command(ABC):
     def do_replace(self, mapping):
         for match_pattern, replacement_pattern in mapping.items():
             self.receiver.string = re.sub(
-                match_pattern, replacement_pattern, self.receiver.string,
+                match_pattern,
+                replacement_pattern,
+                self.receiver.string,
             )
 
     @staticmethod
@@ -42,8 +44,8 @@ class RemoveComments(Command):
         self._drop_commented_lines()
         # https://stackoverflow.com/a/2319116/353337
         mapping = {
-            "%.*?\n": "\n",
-            "%.*?$": "",
+            r"(?<!\\)%.*\w+.*\n": "\n",
+            r"(?<!\\)%.*\w+.*": "",
         }
         self.do_replace(mapping)
 
@@ -58,7 +60,7 @@ class RemoveComments(Command):
 
     @staticmethod
     def _is_commented_line(line):
-        return line.lstrip().startswith("%")
+        return line.strip().startswith("%")
 
 
 class RemoveTrailingWhitespace(Command):
@@ -85,11 +87,12 @@ class RemoveMultipleNewlines(Command):
 class RemoveWhitespaceAroundBrackets(Command):
     def execute(self):
         mapping = {
-            r"{\s+": "{",
-            r"\s+}": "}",
-            r"\(\s+": "(",
-            r"\s+\)": ")",
-            r"\s+\\right\)": r"\\right)",
+            r"{[^\S\r\n]*(.*)[^\S\r\n]+}": r"{\1}",
+            r"{[^\S\r\n]+(.*)[^\S\r\n]*}": r"{\1}",
+            r"\([^\S\r\n]*(.*)[^\S\r\n]+\)": r"(\1)",
+            r"\([^\S\r\n]+(.*)[^\S\r\n]*\)": r"(\1)",
+            r"(\\left\()[^\S\r\n]*(.*)[^\S\r\n]+(\\right\))": r"\1\2\3",
+            r"(\\left\()[^\S\r\n]+(.*)[^\S\r\n]*(\\right\))": r"\1\2\3",
         }
         self.do_replace(mapping)
 

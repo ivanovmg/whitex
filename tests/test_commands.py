@@ -111,6 +111,45 @@ class TestRemoveComments(TestAbstract):
         )
         self.run_and_compare(input_string, expected_string)
 
+    def test_do_not_remove_percent(self):
+        input_string = dedent(
+            """\
+            % This is comment.
+            This is 5\\% five percent.
+            This is also $5\\%$ percent.
+            """
+        )
+        expected_string = dedent(
+            """\
+            This is 5\\% five percent.
+            This is also $5\\%$ percent.
+            """
+        )
+        self.run_and_compare(input_string, expected_string)
+
+    def test_do_not_remove_trailing_percent(self):
+        input_string = "trailing sign %"
+        expected_string = input_string
+        self.run_and_compare(input_string, expected_string)
+
+    def test_do_not_remove_comments_in_end_of_line(self):
+        input_string = dedent(
+            r"""
+\DeclareOption{alignedleftspaceyesifneg}{%
+\newcommand{\alignedspace}@left{%
+  \edef\@tempa{\expandafter\@car\the\lastskip\@nil}%
+  \if-\@tempa\null\,%
+  \else
+    \edef\@tempa{\expandafter\@car\the\lastkern\@nil}%
+    \if-\@tempa\null\,%
+    \else\null
+    \fi
+  \fi}%
+}"""
+        )
+        expected_string = input_string
+        self.run_and_compare(input_string, expected_string)
+
 
 class TestRemoveTrailingWhitespace(TestAbstract):
     command = RemoveTrailingWhitespace
@@ -223,14 +262,35 @@ class TestRemoveWhitespaceAroundBrackets(TestAbstract):
         expected_string = r"word (description) means"
         self.run_and_compare(input_string, expected_string)
 
-    def test_parens_one_space(self):
+    def test_parens_one_space_right(self):
         input_string = r"word (description ) means"
+        expected_string = r"word (description) means"
+        self.run_and_compare(input_string, expected_string)
+
+    def test_parens_one_space_left(self):
+        input_string = r"word ( description) means"
         expected_string = r"word (description) means"
         self.run_and_compare(input_string, expected_string)
 
     def test_big_parens(self):
         input_string = r"word \left(  description \right) means"
         expected_string = r"word \left(description\right) means"
+        self.run_and_compare(input_string, expected_string)
+
+    def test_includegraphics(self):
+        input_string = dedent(
+            """\
+            \\includegraphics{
+                long_path_to_image_file_on_new_line
+            }
+            \\caption[
+                short but still long caption
+            ]{
+                very long-long caption, that must be written like this.
+            }
+            """
+        )
+        expected_string = input_string
         self.run_and_compare(input_string, expected_string)
 
 

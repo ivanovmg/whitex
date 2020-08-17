@@ -52,7 +52,24 @@ def test_comments():
 
     input_string = "keep % comment\n %here\n  % and here\nanother line"
     out = clean(input_string, keep_comments=True)
-    # add newline, since it is there in the original line with inline comment
+    assert out == input_string
+
+    input_string = dedent(
+        r"""\
+        \DeclareOption{alignedleftspaceyesifneg}{%
+        \newcommand{\alignedspace}@left{%
+          \edef\@tempa{\expandafter\@car\the\lastskip\@nil}%
+          \if-\@tempa\null\,%
+          \else
+            \edef\@tempa{\expandafter\@car\the\lastkern\@nil}%
+            \if-\@tempa\null\,%
+            \else\null
+            \fi
+          \fi}%
+        }
+        """
+    )
+    out = clean(input_string, keep_comments=True)
     assert out == input_string
 
 
@@ -108,9 +125,19 @@ def test_dollar_dollar():
 
 
 def test_whitespace_after_curly():
-    input_string = "\\textit{ \nlorem  \n\n\n ipsum dolor sit  amet}"
+    input_string = "\\textit{ little by little  }"
     out = clean(input_string)
-    assert out == "\\textit{lorem\n\n\n ipsum dolor sit amet}"
+    assert out == "\\textit{little by little}"
+
+    # do not change if there are new lines in the middle
+    input_string = "\\textit{ lorem\n\n\n ipsum dolor sit amet}"
+    out = clean(input_string)
+    assert out == input_string
+
+    # do not change if the content is in the new line
+    input_string = "\\textit{\n    sentence in the new line\n}"
+    out = clean(input_string)
+    assert out == input_string
 
 
 def test_subsuperscript_space():
