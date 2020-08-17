@@ -14,7 +14,7 @@ class Command(ABC):
 
     @abstractmethod
     def execute(self):
-        pass
+        """Abstract execute method."""
 
     def find_locations(self, pattern):
         p = re.compile(pattern)
@@ -104,8 +104,12 @@ class ReplaceDoubleDollarInline(Command):
     def locations(self):
         locations = self.find_locations(r"\$\$")
         if len(locations) % 2 != 0:
-            excerpt = self.receiver.string[locations[0]:20]
-            msg = f"Unmatching number of double dollar signs\n{excerpt}"
+            idx = locations[0]
+            excerpt = self.receiver.string[idx:idx+50]
+            msg = (
+                "Unmatching number of double dollar signs\n"
+                f"Context:\n{excerpt}"
+            )
             raise ValueError(msg)
         return locations
 
@@ -238,8 +242,6 @@ class ReplaceOver(Command):
                 range_, frac_pair = range_and_frac_pair
                 ranges.append(range_)
                 frac_values.append(frac_pair)
-            else:
-                continue
 
         replacements = [
             f"\\frac{{{num}}}{{{den}}}"

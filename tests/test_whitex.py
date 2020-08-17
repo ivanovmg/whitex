@@ -63,3 +63,15 @@ def test_command_line_interface(tmpdir):
     help_result = runner.invoke(cli.main, ['--help'])
     assert help_result.exit_code == 0
     assert '--help  Show this message and exit.' in help_result.output
+
+
+def test_non_tex_file_aborts(tmpdir):
+    """Check that click.ClickException is raised for non-tex file."""
+    input_file = tmpdir / 'input.dat'
+    input_file.write('A string')
+    output_file = tmpdir / 'output.tex'
+
+    runner = CliRunner()
+    runner = CliRunner()
+    result = runner.invoke(cli.main, [str(input_file), str(output_file)])
+    assert result.exit_code == 1  # click.Abort raised

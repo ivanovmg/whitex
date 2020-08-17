@@ -6,3 +6,8 @@ History
 ------------------
 
 * First release on PyPI.
+
+0.0.2 (2020-08-17)
+------------------
+
+* Restrict to tex extension only.
