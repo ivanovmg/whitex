@@ -62,7 +62,44 @@ def test_command_line_interface(tmpdir):
 
     help_result = runner.invoke(cli.main, ['--help'])
     assert help_result.exit_code == 0
-    assert '--help  Show this message and exit.' in help_result.output
+
+
+def test_keep_comments(tmpdir):
+    """Test CLI when keep comments."""
+    input_file = tmpdir / 'input.tex'
+    input_content = dedent(
+        """\
+        Dude does mind!
+        % @dude, let's go bowling
+        \\textbf{  this aggression will not stand },
+        And this % also.
+        """
+    )
+    input_file.write(input_content)
+
+    expected_content = dedent(
+        """\
+        Dude does mind!
+        % @dude, let's go bowling
+        \\textbf{this aggression will not stand},
+        And this % also.
+        """
+    )
+
+    output_file = tmpdir / 'output.tex'
+
+    runner = CliRunner()
+    result = runner.invoke(
+        cli.main,
+        [
+            str(input_file),
+            str(output_file),
+            '--keep-comments',
+        ])
+    assert result.exit_code == 0
+
+    with open(output_file, 'r') as out:
+        assert expected_content == out.read()
 
 
 def test_non_tex_file_aborts(tmpdir):
