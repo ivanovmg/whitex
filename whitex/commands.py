@@ -86,25 +86,32 @@ class RemoveMultipleNewlines(Command):
 
 class RemoveWhitespaceAroundBrackets(Command):
     def execute(self):
-        mapping = {
-            # curly
-            r"{[^\S\r\n]*(.*?)[^\S\r\n]+}": r"{\1}",
-            r"{[^\S\r\n]+(.*?)[^\S\r\n]*}": r"{\1}",
-            r"{[^\S\r\n]+(.*?)[^\S\r\n]+}": r"{\1}",
-            # square
-            r"\[[^\S\r\n]*(.*?)[^\S\r\n]+\]": r"[\1]",
-            r"\[[^\S\r\n]+(.*?)[^\S\r\n]*\]": r"[\1]",
-            r"\[[^\S\r\n]+(.*?)[^\S\r\n]+\]": r"[\1]",
-            # round
-            r"\([^\S\r\n]*(.*?)[^\S\r\n]+\)": r"(\1)",
-            r"\([^\S\r\n]+(.*?)[^\S\r\n]*\)": r"(\1)",
-            r"\([^\S\r\n]+(.*?)[^\S\r\n]+\)": r"(\1)",
-            # \left( \right)
-            r"(\\left\()[^\S\r\n]*(.*?)[^\S\r\n]+(\\right\))": r"\1\2\3",
-            r"(\\left\()[^\S\r\n]+(.*?)[^\S\r\n]*(\\right\))": r"\1\2\3",
-            r"(\\left\()[^\S\r\n]+(.*?)[^\S\r\n]+(\\right\))": r"\1\2\3",
+        self.do_replace(self.mapping)
+
+    @property
+    def mapping(self):
+        brackets = {
+            'curly': (r'{', r'}'),
+            'square': (r'\[', r'\]'),
+            'round': (r'\(', r'\)'),
+            'left_right': (r'\\left\(', r'\\right\)'),
         }
-        self.do_replace(mapping)
+
+        mapping = {}
+        for opening, closing in brackets.values():
+            mapping.update(
+                self._make_sub_mapping_for_brackets(opening, closing)
+            )
+        return mapping
+
+    @staticmethod
+    def _make_sub_mapping_for_brackets(opening, closing):
+        space = r'[^\S\r\n]'
+        return {
+            rf"({opening}){space}*(.*?){space}+({closing})": r"\1\2\3",
+            rf"({opening}){space}+(.*?){space}*({closing})": r"\1\2\3",
+            rf"({opening}){space}+(.*?){space}+({closing})": r"\1\2\3",
+        }
 
 
 class ReplaceDoubleDollarInline(Command):
