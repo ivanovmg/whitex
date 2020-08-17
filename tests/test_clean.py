@@ -1,3 +1,9 @@
+"""Module for testing wimtex.commands.clean function.
+
+Original author: Nico Schlömer, https://github.com/nschloe/blacktex
+
+"""
+
 from textwrap import dedent
 import pytest
 
