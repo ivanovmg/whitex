@@ -23,7 +23,9 @@ class Command(ABC):
     def do_replace(self, mapping):
         for match_pattern, replacement_pattern in mapping.items():
             self.receiver.string = re.sub(
-                match_pattern, replacement_pattern, self.receiver.string,
+                match_pattern,
+                replacement_pattern,
+                self.receiver.string,
             )
 
     @staticmethod
@@ -42,8 +44,8 @@ class RemoveComments(Command):
         self._drop_commented_lines()
         # https://stackoverflow.com/a/2319116/353337
         mapping = {
-            "%.*?\n": "\n",
-            "%.*?$": "",
+            r"(?<!\\)%.*\w+.*\n": "\n",
+            r"(?<!\\)%.*\w+.*": "",
         }
         self.do_replace(mapping)
 
@@ -58,7 +60,7 @@ class RemoveComments(Command):
 
     @staticmethod
     def _is_commented_line(line):
-        return line.lstrip().startswith("%")
+        return line.strip().startswith("%")
 
 
 class RemoveTrailingWhitespace(Command):
@@ -84,14 +86,32 @@ class RemoveMultipleNewlines(Command):
 
 class RemoveWhitespaceAroundBrackets(Command):
     def execute(self):
-        mapping = {
-            r"{\s+": "{",
-            r"\s+}": "}",
-            r"\(\s+": "(",
-            r"\s+\)": ")",
-            r"\s+\\right\)": r"\\right)",
+        self.do_replace(self.mapping)
+
+    @property
+    def mapping(self):
+        brackets = {
+            'curly': (r'{', r'}'),
+            'square': (r'\[', r'\]'),
+            'round': (r'\(', r'\)'),
+            'left_right': (r'\\left\(', r'\\right\)'),
         }
-        self.do_replace(mapping)
+
+        mapping = {}
+        for opening, closing in brackets.values():
+            mapping.update(
+                self._make_sub_mapping_for_brackets(opening, closing)
+            )
+        return mapping
+
+    @staticmethod
+    def _make_sub_mapping_for_brackets(opening, closing):
+        space = r'[^\S\r\n]'
+        return {
+            rf"({opening}){space}*(.*?){space}+({closing})": r"\1\2\3",
+            rf"({opening}){space}+(.*?){space}*({closing})": r"\1\2\3",
+            rf"({opening}){space}+(.*?){space}+({closing})": r"\1\2\3",
+        }
 
 
 class ReplaceDoubleDollarInline(Command):
@@ -453,10 +473,15 @@ class AddSpaceAroundEqualitySign(Command):
         self.do_replace(mapping)
 
 
-def clean(string):
+def clean(string, keep_comments=False):
     receiver = TexString(string)
-    commands = [
-        RemoveComments(receiver),
+
+    commands = []
+
+    if not keep_comments:
+        commands.append(RemoveComments(receiver))
+
+    commands.extend([
         RemoveTrailingWhitespace(receiver),
         RemoveMultipleSpaces(receiver),
         RemoveMultipleNewlines(receiver),
@@ -483,6 +508,7 @@ def clean(string):
         ReplaceColonEqualWithColoneqq(receiver),
         RemoveSpaceBeforeTabularColumnSpecification(receiver),
         AddSpaceAroundEqualitySign(receiver),
-    ]
+    ])
+
     [c.execute() for c in commands]
     return receiver.string
