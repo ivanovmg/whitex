@@ -62,7 +62,6 @@ def test_command_line_interface(tmpdir):
 
     help_result = runner.invoke(cli.main, ['--help'])
     assert help_result.exit_code == 0
-    assert '--help  Show this message and exit.' in help_result.output
 
 
 def test_non_tex_file_aborts(tmpdir):

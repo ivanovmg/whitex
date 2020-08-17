@@ -14,7 +14,12 @@ from whitex.whitex import clean_buffer
     "output_fname",
     type=click.Path(dir_okay=False),
 )
-def main(input_fname, output_fname):
+@click.option(
+    '--keep-comments',
+    help='Add if need to keep comments.',
+    is_flag=True,
+)
+def main(input_fname, output_fname, keep_comments):
     """Console script for whitex."""
     if not input_fname.endswith('.tex'):
         msg = (
@@ -25,7 +30,11 @@ def main(input_fname, output_fname):
 
     with open(input_fname, 'r') as input_buf:
         with open(output_fname, 'w') as output_buf:
-            clean_buffer(input_buf, output_buf)
+            clean_buffer(
+                input_buf=input_buf,
+                output_buf=output_buf,
+                keep_comments=keep_comments,
+            )
 
 
 if __name__ == "__main__":

@@ -453,10 +453,15 @@ class AddSpaceAroundEqualitySign(Command):
         self.do_replace(mapping)
 
 
-def clean(string):
+def clean(string, keep_comments=False):
     receiver = TexString(string)
-    commands = [
-        RemoveComments(receiver),
+
+    commands = []
+
+    if not keep_comments:
+        commands.append(RemoveComments(receiver))
+
+    commands.extend([
         RemoveTrailingWhitespace(receiver),
         RemoveMultipleSpaces(receiver),
         RemoveMultipleNewlines(receiver),
@@ -483,6 +488,7 @@ def clean(string):
         ReplaceColonEqualWithColoneqq(receiver),
         RemoveSpaceBeforeTabularColumnSpecification(receiver),
         AddSpaceAroundEqualitySign(receiver),
-    ]
+    ])
+
     [c.execute() for c in commands]
     return receiver.string

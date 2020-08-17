@@ -50,6 +50,11 @@ def test_comments():
     out = clean(input_string)
     assert out == "A\n sit amet"
 
+    input_string = "keep % comment\n %here\n  % and here\nanother line"
+    out = clean(input_string, keep_comments=True)
+    # add newline, since it is there in the original line with inline comment
+    assert out == input_string
+
 
 def test_multiple_comment_lines():
     input_string = "A\n%\n%\nB"
