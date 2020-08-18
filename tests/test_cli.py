@@ -26,9 +26,30 @@ def test_content(response):
     # assert 'GitHub' in BeautifulSoup(response.content).title.string
 
 
+def test_help_works():
+    runner = CliRunner()
+    help_result = runner.invoke(cli.main, ['--help'])
+    assert help_result.exit_code == 0
+
+
+def run_and_compare_contents(input_content, expected_content, options=None):
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open('file.tex', 'w') as input_buf:
+            input_buf.write(input_content)
+
+        args = ['file.tex']
+        if options:
+            args.extend(options)
+        result = runner.invoke(cli.main, args)
+        assert result.exit_code == 0
+
+        with open('file.tex', 'r') as out_buf:
+            assert expected_content == out_buf.read()
+
+
 def test_command_line_interface(tmpdir):
     """Test the CLI."""
-    input_file = tmpdir / 'input.tex'
     input_content = dedent(
         """\
         Because   of $$a+b=c$$ ({\\it Pythogoras}),
@@ -37,7 +58,6 @@ def test_command_line_interface(tmpdir):
         we have ${\\Gamma \\over 2}=8.$
         """
     )
-    input_file.write(input_content)
 
     expected_content = dedent(
         """\
@@ -51,22 +71,11 @@ def test_command_line_interface(tmpdir):
         """
     )
 
-    output_file = tmpdir / 'output.tex'
-
-    runner = CliRunner()
-    result = runner.invoke(cli.main, [str(input_file), str(output_file)])
-    assert result.exit_code == 0
-
-    with open(output_file, 'r') as out:
-        assert expected_content == out.read()
-
-    help_result = runner.invoke(cli.main, ['--help'])
-    assert help_result.exit_code == 0
+    run_and_compare_contents(input_content, expected_content)
 
 
-def test_keep_comments(tmpdir):
+def test_keep_comments():
     """Test CLI when keep comments."""
-    input_file = tmpdir / 'input.tex'
     input_content = dedent(
         """\
         Dude does mind!
@@ -75,7 +84,6 @@ def test_keep_comments(tmpdir):
         And this % also.
         """
     )
-    input_file.write(input_content)
 
     expected_content = dedent(
         """\
@@ -86,29 +94,20 @@ def test_keep_comments(tmpdir):
         """
     )
 
-    output_file = tmpdir / 'output.tex'
-
-    runner = CliRunner()
-    result = runner.invoke(
-        cli.main,
-        [
-            str(input_file),
-            str(output_file),
-            '--keep-comments',
-        ])
-    assert result.exit_code == 0
-
-    with open(output_file, 'r') as out:
-        assert expected_content == out.read()
+    run_and_compare_contents(
+        input_content,
+        expected_content,
+        options=['--keep-comments']
+    )
 
 
-def test_non_tex_file_aborts(tmpdir):
+def test_non_tex_file_aborts():
     """Check that click.ClickException is raised for non-tex file."""
-    input_file = tmpdir / 'input.dat'
-    input_file.write('A string')
-    output_file = tmpdir / 'output.tex'
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open('file.dat', 'w') as input_buf:
+            input_buf.write('A string')
 
-    runner = CliRunner()
-    runner = CliRunner()
-    result = runner.invoke(cli.main, [str(input_file), str(output_file)])
-    assert result.exit_code == 1  # click.Abort raised
+        result = runner.invoke(cli.main, ['file.dat'])
+        assert 'Aborted!' in result.output
+        assert result.exit_code == 1  # click.Abort raised
