@@ -17,7 +17,12 @@ from whitex.whitex import clean_buffer
     help='Add if need to keep comments.',
     is_flag=True,
 )
-def main(input_fname, keep_comments):
+@click.option(
+    '--no-backup',
+    help='Add if there is no need for backup',
+    is_flag=True,
+)
+def main(input_fname, keep_comments, no_backup):
     """Console script for whitex."""
     if not input_fname.endswith('.tex'):
         msg = (
@@ -33,7 +38,9 @@ def main(input_fname, keep_comments):
             keep_comments=keep_comments,
         )
 
-    _make_backup(input_fname)
+    if not no_backup:
+        _make_backup(input_fname)
+
     output_fname = input_fname
 
     with open(output_fname, 'w') as output_buf:

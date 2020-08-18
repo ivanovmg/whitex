@@ -3,6 +3,7 @@
 """Tests for `whitex` package."""
 
 from textwrap import dedent
+import os
 import pytest
 
 from click.testing import CliRunner
@@ -111,3 +112,27 @@ def test_non_tex_file_aborts():
         result = runner.invoke(cli.main, ['file.dat'])
         assert 'Aborted!' in result.output
         assert result.exit_code == 1  # click.Abort raised
+
+
+def test_backup_works():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open('file.tex', 'w') as input_buf:
+            input_buf.write('A string')
+
+        result = runner.invoke(cli.main, ['file.tex'])
+        assert result.exit_code == 0
+        assert os.path.exists('.file_whitex_bkp.tex')
+        with open('.file_whitex_bkp.tex', 'r') as bkp:
+            assert bkp.read() == 'A string'
+
+
+def test_no_backup():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open('file.tex', 'w') as input_buf:
+            input_buf.write('A string')
+
+        result = runner.invoke(cli.main, ['file.tex', '--no-backup'])
+        assert result.exit_code == 0
+        assert not os.path.exists('.file_whitex_bkp.tex')
