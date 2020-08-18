@@ -20,3 +20,14 @@ History
 * Improved comments handling.
 * Modified behavior for removal whitespace around brackets.
 
+
+0.0.4 (2020-08-18)
+------------------
+
+* Internal changes
+
+
+0.0.5 (2020-08-18)
+------------------
+
+* Overwrite tex files and optionally keep backup.
